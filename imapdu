@@ -62,13 +62,13 @@ def folder_size(client, folder):
         return nmsg, sum(sizes), max(sizes)
 
 
-def sizeof_fmt(num):
+def to_size(num):
     """format a number as a size in bytes"""
-    for x in ['bytes', 'KB', 'MB', 'GB']:
+    for x in ['B', 'K', 'M', 'G']:
         if num < 1024.0:
             return "%3.1f%s" % (num, x)
         num /= 1024.0
-    return "%3.1f%s" % (num, 'TB')
+    return "%3.1f%s" % (num, 'T')
 
 
 if __name__ == "__main__":
@@ -81,6 +81,10 @@ if __name__ == "__main__":
                         help='IMAP username (default: %(default)s)')
     parser.add_argument('--csv', action='store_true', default=False,
                         help='Produce CSV output')
+    parser.add_argument('--human-readable', action='store_true', default=True,
+                        help='Print sizes in human readable format')
+    parser.add_argument('--no-human-readable', action='store_false',
+                        dest='human_readable')
     parser.add_argument('server', type=str,
                         help='IMAP server')
     args = parser.parse_args()
@@ -109,6 +113,9 @@ if __name__ == "__main__":
         if ret is None:
             continue
         nmsg, size, max_ = ret
+        if args.human_readable:
+            size = to_size(size)
+            max_ = to_size(max_)
         print report.format(count=nmsg, folder=folder,
                             size=size, biggest=max_)
 
