@@ -12,8 +12,8 @@ OPTIONS
 `--tls`        Use a secure connection (SSL)  
 `--port PORT`  Port to connect to (default: 143 or 993)  
 `--user USER`  IMAP username  
-`--csv`        Produce CSV output
-`--human-readable`  Print sizes in human readable format
+`--csv`        Produce CSV output  
+`--human-readable`  Print sizes in human readable format  
 `--no-human-readable`
 
 INSTALLATION
