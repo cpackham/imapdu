@@ -12,6 +12,7 @@ OPTIONS
 `--tls`        Use a secure connection (SSL)  
 `--port PORT`  Port to connect to (default: 143 or 993)  
 `--user USER`  IMAP username  
+`--csv`        Produce CSV output
 
 INSTALLATION
 ============

@@ -79,6 +79,8 @@ if __name__ == "__main__":
                         help='Port to connect to (default: 143 or 993)')
     parser.add_argument('--user', type=str, default=getpass.getuser(),
                         help='IMAP username (default: %(default)s)')
+    parser.add_argument('--csv', action='store_true', default=False,
+                        help='Produce CSV output')
     parser.add_argument('server', type=str,
                         help='IMAP server')
     args = parser.parse_args()
@@ -97,15 +99,18 @@ if __name__ == "__main__":
     else:
         client = imaplib.IMAP4(args.server, port)
 
+    report_human = "{count} Messages in {folder} taking up {size} biggest message {biggest}"
+    report_csv = "{count},{folder},{size},{biggest}"
+    report = report_csv if args.csv else report_human
+
     client.login(args.user, password)
     for folder in folders(client):
         ret = folder_size(client, folder)
         if ret is None:
             continue
         nmsg, size, max_ = ret
-        report = "{} Messages in {} taking up {} biggest message {}"
-        print report.format(nmsg, folder,
-                            sizeof_fmt(size), sizeof_fmt(max_))
+        print report.format(count=nmsg, folder=folder,
+                            size=size, biggest=max_)
 
     client.close()
     client.logout()
