@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+
+"""
+Disk usage calculator for IMAP accounts
+"""
+import argparse
+import imaplib
+import getpass
+import re
+
+
+def folders(client):
+    """return a list of IMAP folders"""
+    status, result = client.list()
+    if status != "OK":
+        return []
+    else:
+        return [x.split(' "/" ')[1] for x in result]
+
+
+def folder_size(client, folder):
+    """
+    return the number, size and maximum of all the
+    messages in an IMAP folder
+    """
+    status, result = client.select(folder, readonly=True)
+    if status != "OK":
+        return None
+
+    nmsg = int(result[0])
+    if nmsg > 0:
+        status, result = client.search(None, 'ALL')
+        if status != "OK":
+            return None
+
+        msg_ids = [int(i) for i in result[0].split()]
+        msg_ids.sort()
+        message_set = "%d:%d" % (msg_ids[0], msg_ids[-1])
+
+        status, result = client.fetch(message_set, "(RFC822.SIZE)")
+        if status != "OK":
+            return None
+
+        exp = re.compile(r'\d+ \(RFC822.SIZE (\d+)\)')
+        sizes = [int(exp.search(x).group(1)) for x in result]
+
+        return nmsg, sum(sizes), max(sizes)
+
+
+def sizeof_fmt(num):
+    """format a number as a size in bytes"""
+    for x in ['bytes', 'KB', 'MB', 'GB']:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+    return "%3.1f%s" % (num, 'TB')
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--tls', action='store_true', default=False,
+                        help='Use a secure connection (SSL)')
+    parser.add_argument('--port', type=int,
+                        help='Port to connect to (default: 143 or 993)')
+    parser.add_argument('--user', type=str, default=getpass.getuser(),
+                        help='IMAP username (default: %(default)s)')
+    parser.add_argument('server', type=str,
+                        help='IMAP server')
+    args = parser.parse_args()
+
+    if args.port:
+        port = args.port
+    elif args.tls:
+        port = 993
+    else:
+        port = 143
+
+    password = getpass.getpass()
+
+    if args.tls:
+        client = imaplib.IMAP4_SSL(args.server, port)
+    else:
+        client = imaplib.IMAP4(args.server, port)
+
+    client.login(args.user, password)
+    for folder in folders(client):
+        ret = folder_size(client, folder)
+        if ret is None:
+            continue
+        nmsg, size, max_ = ret
+        report = "{} Messages in {} taking up {} biggest message {}"
+        print report.format(nmsg, folder,
+                            sizeof_fmt(size), sizeof_fmt(max_))
+
+    client.close()
+    client.logout()
