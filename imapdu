@@ -89,12 +89,9 @@ if __name__ == "__main__":
                         help='IMAP server')
     args = parser.parse_args()
 
+    port = 993 if args.tls else 143
     if args.port:
         port = args.port
-    elif args.tls:
-        port = 993
-    else:
-        port = 143
 
     password = getpass.getpass()
 
