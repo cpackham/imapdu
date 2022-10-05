@@ -6,4 +6,5 @@ setup(
     description="Disk usage calculator for IMAP",
     author="Chris Packham",
     py_modules=["imapdu"],
+    entry_points={"console_scripts": ["imapdu = imapdu:main"]},
 )
