@@ -19,10 +19,55 @@
 Disk usage calculator for IMAP accounts
 """
 import argparse
+import base64
 import imaplib
 import getpass
 import re
+from itertools import chain
+from typing import List
 
+
+def decode_unpadded_base64(base64_string: str) -> str:
+    if not base64_string:
+        return "&"
+    padding = (-len(base64_string) % 4) * '='
+    base64_decoded = base64.b64decode(
+        f"{base64_string}{padding}", altchars='+,', validate=True
+    )
+    return base64_decoded.decode("utf-16-be")
+
+
+def decode_utf7_imap(utf7_imap_string: str) -> str:
+    ascii_head, *parts = utf7_imap_string.split("&")
+    result = [ascii_head]
+    for part in parts:
+        (base64_encoded, ascii_tail) = part.split('-', 1)
+        result.append(decode_unpadded_base64(base64_encoded))
+        result.append(ascii_tail)
+    return "".join(result)
+
+
+def encode_unicode_run(unicode_characters: List[str]) -> str:
+    unicode_string = "".join(unicode_characters)
+    utf_encoded = unicode_string.encode('utf-16-be')
+    base64_encoded = base64.b64encode(utf_encoded)
+    unpadded = base64_encoded.decode('ascii').rstrip('=')
+    return f"&{unpadded}-"
+
+
+def encode_utf7_imap(s: str) -> str:
+    unicode_buffer = []
+    utf7_imap = []
+    for character in chain(s.replace("&", "&-"), [""]):
+        if not character or 0x20 <= ord(character) <= 0x7f:
+            if unicode_buffer:
+                utf7_imap.append(encode_unicode_run(unicode_buffer))
+                unicode_buffer = []
+            utf7_imap.append(character)
+        else:
+            unicode_buffer.append(character)
+    return "".join(utf7_imap)
+        
 
 def folders(client):
     """return a list of IMAP folders"""
@@ -30,7 +75,10 @@ def folders(client):
     if status != "OK":
         return []
     else:
-        return [x.split(' "/" ')[1] for x in result]
+        return [
+            decode_utf7_imap(part.decode("ascii")).split(' "/" ')[1]
+            for part in result
+        ]
 
 
 def folder_size(client, folder):
@@ -38,7 +86,7 @@ def folder_size(client, folder):
     return the number, size and maximum of all the
     messages in an IMAP folder
     """
-    status, result = client.select(folder, readonly=True)
+    status, result = client.select(encode_utf7_imap(folder), readonly=True)
     if status != "OK":
         return None
 
@@ -57,7 +105,10 @@ def folder_size(client, folder):
             return None
 
         exp = re.compile(r'\d+ \(RFC822.SIZE (\d+)\)')
-        sizes = [int(exp.search(x).group(1)) for x in result]
+        sizes = [
+            int(exp.search(message_info.decode("ascii")).group(1))
+            for message_info in result
+        ]
 
         return nmsg, sum(sizes), max(sizes)
 
