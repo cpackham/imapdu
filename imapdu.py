@@ -71,7 +71,7 @@ def to_size(num):
     return "%3.1f%s" % (num, 'T')
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--tls', action='store_true', default=False,
                         help='Use a secure connection (SSL)')
@@ -118,3 +118,7 @@ if __name__ == "__main__":
 
     client.close()
     client.logout()
+
+
+if __name__ == "__main__":
+    main()
