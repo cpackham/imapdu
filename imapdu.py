@@ -113,8 +113,7 @@ def main():
         if args.human_readable:
             size = to_size(size)
             max_ = to_size(max_)
-        print report.format(count=nmsg, folder=folder,
-                            size=size, biggest=max_)
+        print(report.format(count=nmsg, folder=folder, size=size, biggest=max_))
 
     client.close()
     client.logout()
