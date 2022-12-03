@@ -1,6 +1,10 @@
-from distutils.core import setup
-setup(name='imapdu',
-      version='1.0',
-      description='Disk usage calculator for IMAP',
-      author='Chris Packham',
-      scripts=['imapdu'])
+from setuptools import setup
+
+setup(
+    name="imapdu",
+    version="1.0",
+    description="Disk usage calculator for IMAP",
+    author="Chris Packham",
+    py_modules=["imapdu"],
+    entry_points={"console_scripts": ["imapdu = imapdu:main"]},
+)
