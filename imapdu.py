@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # imapdu - Disk usage for IMAP
 # Copyright (C) 2014 Chris Packham
