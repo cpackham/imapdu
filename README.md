@@ -21,15 +21,15 @@ INSTALLATION
 
 Unix/Linux:
 
-    sudo python setup.py install
+    sudo python3 setup.py install
 
 
 Unix/Linux (single user):
 
-    python setup.py install --user --install-scripts ~/bin
+    python3 setup.py install --user --install-scripts ~/bin
 
 
 Other:
 
-    python setup.py install
+    python3 setup.py install
 
