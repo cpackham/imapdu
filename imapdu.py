@@ -56,7 +56,7 @@ def folder_size(client, folder):
         if status != "OK":
             return None
 
-        exp = re.compile(r'\d+ \(RFC822.SIZE (\d+)\)')
+        exp = re.compile(r'\d+ \(.*RFC822.SIZE (\d+)\)')
         sizes = [int(exp.search(x.decode("ascii")).group(1)) for x in result]
 
         return nmsg, sum(sizes), max(sizes)
