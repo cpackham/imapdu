@@ -30,7 +30,7 @@ def folders(client):
     if status != "OK":
         return []
     else:
-        return [x.split(' "/" ')[1] for x in result]
+        return [x.decode("ascii").split(' "/" ')[1] for x in result]
 
 
 def folder_size(client, folder):
@@ -57,7 +57,7 @@ def folder_size(client, folder):
             return None
 
         exp = re.compile(r'\d+ \(RFC822.SIZE (\d+)\)')
-        sizes = [int(exp.search(x).group(1)) for x in result]
+        sizes = [int(exp.search(x.decode("ascii")).group(1)) for x in result]
 
         return nmsg, sum(sizes), max(sizes)
 
