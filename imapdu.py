@@ -21,13 +21,18 @@ Disk usage calculator for IMAP accounts
 import argparse
 import imaplib
 import getpass
+import logging
 import re
+
+
+logger = logging.getLogger(__name__)
 
 
 def folders(client):
     """return a list of IMAP folders"""
     status, result = client.list()
     if status != "OK":
+        logger.warning("Got %s listing folders", status)
         return []
     else:
         return [x.decode("ascii").split(' "/" ')[1] for x in result]
@@ -40,12 +45,14 @@ def folder_size(client, folder):
     """
     status, result = client.select(folder, readonly=True)
     if status != "OK":
+        logger.warning(f"Got %s when selecting %s", status, folder)
         return None
 
     nmsg = int(result[0])
     if nmsg > 0:
         status, result = client.search(None, 'ALL')
         if status != "OK":
+            logger.warning(f"Got %s when searching ALL in %s", status, folder)
             return None
 
         msg_ids = [int(i) for i in result[0].split()]
@@ -54,6 +61,7 @@ def folder_size(client, folder):
 
         status, result = client.fetch(message_set, "(RFC822.SIZE)")
         if status != "OK":
+            logger.warning(f"Got %s fetching %s from %s", status, message_set, folder)
             return None
 
         exp = re.compile(r'\d+ \(.*RFC822.SIZE (\d+)\)')
